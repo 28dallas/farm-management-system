@@ -34,13 +34,16 @@ let loginActivity = [];
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secure-jwt-secret-key-change-this-in-production-2024';
 
 const app = express();
-const PORT = 5000;
+const PORT = 5001;
 const upload = multer({ dest: 'uploads/' });
 const dbPath = path.join(__dirname, 'db.json');
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(bodyParser.json({ limit: '10mb' }));
 
 // Rate limiting
@@ -252,6 +255,8 @@ const initDB = () => {
       expenses: [],
       projects: [],
       revenueByCrop: [],
+      inventory: [],
+      crops: [],
       users
     };
     fs.writeFileSync(dbPath, JSON.stringify(initialData, null, 2));
@@ -392,6 +397,30 @@ app.get('/api/monthly-financials', authenticateToken, (req, res) => {
 });
 
 
+
+// Inventory endpoints
+app.get('/api/inventory', authenticateToken, (req, res) => {
+  const data = readDB();
+  res.json(data.inventory || []);
+});
+
+// Crops endpoints
+app.get('/api/crops', authenticateToken, (req, res) => {
+  const data = readDB();
+  res.json(data.crops || []);
+});
+
+// Revenue by crop endpoint
+app.get('/api/revenue-by-crop', authenticateToken, (req, res) => {
+  const data = readDB();
+  res.json(data.revenueByCrop || []);
+});
+
+// Monthly financials endpoint
+app.get('/api/monthly-financials', authenticateToken, (req, res) => {
+  const data = readDB();
+  res.json(data.monthlyFinancials || []);
+});
 
 // Summary endpoint
 app.get('/api/summary', authenticateToken, (req, res) => {

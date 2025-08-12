@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AddCropModal from './AddCropModal';
+import apiService from '../services/api';
 
 const Crops = () => {
   const [crops, setCrops] = useState([]);
@@ -12,10 +13,12 @@ const Crops = () => {
   const allCrops = [...crops, ...localCrops];
 
   useEffect(() => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  fetch(`${API_URL}/api/crops`)
-      .then(res => res.json())
-      .then(data => setCrops(data));
+    apiService.getCrops()
+      .then(data => setCrops(data || []))
+      .catch(err => {
+        console.error('Failed to fetch crops:', err);
+        setCrops([]);
+      });
   }, []);
 
   return (

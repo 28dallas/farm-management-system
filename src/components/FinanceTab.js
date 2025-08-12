@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import SummaryCards from './SummaryCards';
 import CashFlow from './CashFlow';
 import Projects from './Projects';
+import apiService from '../services/api';
 
 const FinanceTab = () => {
   const [revenueByCrop, setRevenueByCrop] = useState([]);
@@ -12,33 +13,36 @@ const FinanceTab = () => {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
   useEffect(() => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  fetch(`${API_URL}/api/revenue-by-crop`)
-      .then(res => res.json())
-      .then(data => setRevenueByCrop(data));
-  fetch(`${API_URL}/api/summary`)
-      .then(res => res.json())
+    const API_URL = 'http://localhost:5001';
+    
+    apiService.request('/api/revenue-by-crop')
+      .then(data => setRevenueByCrop(data || []))
+      .catch(err => console.error('Failed to fetch revenue by crop:', err));
+    
+    apiService.getSummary()
       .then(data => {
         if (data.totalRevenue !== undefined && data.totalExpenses !== undefined) {
           const margin = data.totalRevenue === 0 ? 0 : ((data.totalRevenue - data.totalExpenses) / data.totalRevenue) * 100;
           setProfitMargin(margin);
         }
-      });
-  fetch(`${API_URL}/api/income`)
-      .then(res => res.json())
-      .then(income => {
-  fetch(`${API_URL}/api/expenses`)
-          .then(res => res.json())
-          .then(expenses => {
-            setTransactions([
-              ...income.map(i => ({ ...i, type: 'Income' })),
-              ...expenses.map(e => ({ ...e, type: 'Expense' }))
-            ].sort((a, b) => new Date(b.date) - new Date(a.date)));
-          });
-      });
-  fetch(`${API_URL}/api/projects`)
-      .then(res => res.json())
-      .then(data => setProjects(data));
+      })
+      .catch(err => console.error('Failed to fetch summary:', err));
+    
+    Promise.all([
+      apiService.getIncome(),
+      apiService.getExpenses()
+    ])
+    .then(([income, expenses]) => {
+      setTransactions([
+        ...(income || []).map(i => ({ ...i, type: 'Income' })),
+        ...(expenses || []).map(e => ({ ...e, type: 'Expense' }))
+      ].sort((a, b) => new Date(b.date) - new Date(a.date)));
+    })
+    .catch(err => console.error('Failed to fetch transactions:', err));
+    
+    apiService.getProjects()
+      .then(data => setProjects(data || []))
+      .catch(err => console.error('Failed to fetch projects:', err));
   }, []);
 
   return (

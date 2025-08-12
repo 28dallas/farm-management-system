@@ -16,7 +16,7 @@ const Projects = () => {
     const fetchProjects = async () => {
       try {
         const token = localStorage.getItem('token');
-        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
         const response = await fetch(`${API_URL}/api/projects`, {
           headers: {
             'Authorization': `Bearer ${token}`,

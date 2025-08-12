@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AddIncomeModal from './AddIncomeModal';
+import apiService from '../services/api';
 
 const Income = () => {
   const [income, setIncome] = useState([]);
@@ -12,10 +13,9 @@ const Income = () => {
   const allIncome = [...income, ...localIncome];
 
   useEffect(() => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  fetch(`${API_URL}/api/income`)
-      .then(res => res.json())
-      .then(data => setIncome(data));
+    apiService.getIncome()
+      .then(data => setIncome(data || []))
+      .catch(err => console.error('Failed to fetch income:', err));
   }, []);
 
   return (

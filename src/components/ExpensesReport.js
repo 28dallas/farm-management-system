@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AddExpenseModal from './AddExpenseModal';
+import apiService from '../services/api';
 
 
 const defaultCategories = ['Utilities', 'Supplies', 'Labor', 'Transport'];
@@ -23,10 +24,8 @@ const ExpensesReport = () => {
   };
 
   useEffect(() => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  fetch(`${API_URL}/api/expenses`)
-      .then(res => res.json())
-      .then(data => setExpenses(data))
+    apiService.getExpenses()
+      .then(data => setExpenses(data || []))
       .catch(err => console.error('Error fetching expenses:', err));
   }, []);
 

@@ -11,3 +11,22 @@
 {"id":1754914793139,"level":"info","message":"User logged in","timestamp":"2025-08-12T11:19:06.151Z","username":"Nathan Krop"}
 {"id":1754997658953,"level":"info","message":"User registered","timestamp":"2025-08-12T11:20:59.379Z","username":"Nathan Sydo"}
 {"id":1754997658953,"level":"info","message":"User logged in","timestamp":"2025-08-12T11:25:00.820Z","username":"Nathan Sydo"}
+{"level":"info","message":"Server running on http://localhost:5000","timestamp":"2025-08-12T14:47:39.834Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T14:48:13.764Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T15:05:54.807Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T15:10:15.527Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T15:11:37.359Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T15:21:40.371Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T15:37:45.466Z"}
+{"id":1755013078770,"level":"info","message":"User registered","timestamp":"2025-08-12T15:37:59.154Z","username":"Breezy Dallas"}
+{"id":1754914793139,"level":"info","message":"User logged in","timestamp":"2025-08-12T15:38:38.381Z","username":"Nathan Krop"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T16:09:20.946Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T16:14:35.143Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T16:14:53.513Z"}
+{"error":"Unexpected token '@', \"@-\" is not valid JSON","level":"error","message":"Unhandled error","stack":"SyntaxError: Unexpected token '@', \"@-\" is not valid JSON\n    at JSON.parse (<anonymous>)\n    at createStrictSyntaxError (/home/nathan/Documents/Farm-Proj/farm-backend/node_modules/body-parser/lib/types/json.js:156:10)\n    at parse (/home/nathan/Documents/Farm-Proj/farm-backend/node_modules/body-parser/lib/types/json.js:71:15)\n    at /home/nathan/Documents/Farm-Proj/farm-backend/node_modules/body-parser/lib/read.js:123:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)\n    at invokeCallback (/home/nathan/Documents/Farm-Proj/farm-backend/node_modules/raw-body/index.js:238:16)\n    at done (/home/nathan/Documents/Farm-Proj/farm-backend/node_modules/raw-body/index.js:227:7)\n    at IncomingMessage.onEnd (/home/nathan/Documents/Farm-Proj/farm-backend/node_modules/raw-body/index.js:287:7)\n    at IncomingMessage.emit (node:events:518:28)\n    at endReadableNT (node:internal/streams/readable:1698:12)","timestamp":"2025-08-12T16:14:55.954Z","url":"/api/login"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T16:19:27.808Z"}
+{"id":1754914793139,"level":"info","message":"User logged in","timestamp":"2025-08-12T16:19:49.368Z","username":"Nathan Krop"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T16:25:31.723Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T16:29:29.707Z"}
+{"level":"info","message":"Server running on http://localhost:5001","timestamp":"2025-08-12T16:33:25.474Z"}
+{"id":1754914793139,"level":"info","message":"User logged in","timestamp":"2025-08-12T16:34:04.574Z","username":"Nathan Krop"}

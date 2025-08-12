@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = 'http://localhost:5001';
 
 class ApiService {
   constructor() {
@@ -15,31 +15,27 @@ class ApiService {
 
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+
     const config = {
       headers: this.getAuthHeaders(),
       ...options
     };
 
-    try {
-      const response = await fetch(url, config);
-      
-      if (response.status === 401 && !endpoint.includes('/login') && !endpoint.includes('/signup')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/';
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`API Error (${endpoint}):`, error);
-      throw error;
+    const response = await fetch(url, config);
+    
+    if (response.status === 401 && !endpoint.includes('/login') && !endpoint.includes('/signup')) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/';
+      return;
     }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
+    }
+
+    return await response.json();
   }
 
   async login(credentials) {
@@ -95,6 +91,14 @@ class ApiService {
 
   async healthCheck() {
     return this.request('/api/health');
+  }
+
+  async getCrops() {
+    return this.request('/api/crops');
+  }
+
+  async getInventory() {
+    return this.request('/api/inventory');
   }
 }
 

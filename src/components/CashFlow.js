@@ -1,37 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
+import apiService from '../services/api';
 
 const CashFlow = () => {
   const [monthlyData, setMonthlyData] = useState([]);
 
   useEffect(() => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  fetch(`${API_URL}/api/monthly-financials`)
-      .then(res => res.json())
-      .then(data => setMonthlyData(data))
-      .catch(err => console.error('Error fetching monthly data:', err));
+    apiService.request('/api/monthly-financials')
+      .then(data => setMonthlyData(Array.isArray(data) ? data : []))
+      .catch(err => {
+        console.error('Error fetching monthly data:', err);
+        setMonthlyData([]);
+      });
   }, []);
 
   const chartData = {
-    labels: monthlyData.map(item => item.month.slice(0, 3)),
+    labels: monthlyData.length > 0 ? monthlyData.map(item => item.month?.slice(0, 3) || 'N/A') : ['Jan', 'Feb', 'Mar'],
     datasets: [
       {
         label: 'Income',
-        data: monthlyData.map(item => item.income),
+        data: monthlyData.length > 0 ? monthlyData.map(item => item.income || 0) : [0, 0, 0],
         borderColor: 'rgb(34, 197, 94)',
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
         tension: 0.1,
       },
       {
         label: 'Expenses',
-        data: monthlyData.map(item => item.expenses),
+        data: monthlyData.length > 0 ? monthlyData.map(item => item.expenses || 0) : [0, 0, 0],
         borderColor: 'rgb(239, 68, 68)',
         backgroundColor: 'rgba(239, 68, 68, 0.1)',
         tension: 0.1,
       },
       {
         label: 'Cash on Hand',
-        data: monthlyData.map(item => item.cashOnHand),
+        data: monthlyData.length > 0 ? monthlyData.map(item => item.cashOnHand || 0) : [1000000, 1000000, 1000000],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.1,

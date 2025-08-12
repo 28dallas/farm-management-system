@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import apiService from '../services/api';
 
 const Inventory = () => {
   const [items, setItems] = useState([]);
@@ -7,10 +8,12 @@ const Inventory = () => {
   const totalValue = items.reduce((sum, item) => sum + (item.totalValue || 0), 0);
 
   useEffect(() => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  fetch(`${API_URL}/api/inventory`)
-      .then(res => res.json())
-      .then(data => setItems(data));
+    apiService.getInventory()
+      .then(data => setItems(data || []))
+      .catch(err => {
+        console.error('Failed to fetch inventory:', err);
+        setItems([]);
+      });
   }, []);
 
   return (

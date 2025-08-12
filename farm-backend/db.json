@@ -124,6 +124,15 @@
       "email": "neithank47@gmail.com",
       "displayName": "Sydo",
       "createdAt": "2025-08-12T11:20:59.375Z"
+    },
+    {
+      "id": 1755013078770,
+      "username": "Breezy Dallas",
+      "password": "$2b$12$64l35J3U9P7eNgGnk39.kOlkp5saVoWp6QCr71Zge.HgSvkvuKcHe",
+      "role": "user",
+      "email": "neithank47@gmail.com",
+      "displayName": "BreezyD",
+      "createdAt": "2025-08-12T15:37:59.148Z"
     }
   ]
 }
