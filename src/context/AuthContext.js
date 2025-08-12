@@ -12,23 +12,42 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    try {
+      const storedUser = localStorage.getItem('user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error('Error parsing stored user:', error);
+      localStorage.removeItem('user');
+      return null;
+    }
   });
   const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const login = (userData, userToken) => {
-    localStorage.setItem('token', userToken);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
-    setToken(userToken);
+    try {
+      localStorage.setItem('token', userToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      setToken(userToken);
+      setError(null);
+    } catch (error) {
+      console.error('Error during login:', error);
+      setError('Login failed');
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
-    setToken(null);
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser(null);
+      setToken(null);
+      setError(null);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const getAuthHeaders = () => ({
@@ -42,6 +61,10 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     getAuthHeaders,
+    loading,
+    error,
+    setLoading,
+    setError,
     isAuthenticated: !!(user && token)
   };
 

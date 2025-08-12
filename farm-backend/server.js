@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -30,7 +31,7 @@ const logger = winston.createLogger({
 // In-memory login activity log (for demo)
 let loginActivity = [];
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secure-jwt-secret-key-change-this-in-production-2024';
 
 const app = express();
 const PORT = 5000;
@@ -198,19 +199,19 @@ app.post('/api/reset', (req, res) => {
       {
         id: 1,
         username: 'admin',
-        password: bcrypt.hashSync('adminpass', 8),
+        password: bcrypt.hashSync('adminpass', 12),
         role: 'admin'
       },
       {
         id: 2,
         username: 'user1',
-        password: bcrypt.hashSync('user1pass', 8),
+        password: bcrypt.hashSync('user1pass', 12),
         role: 'user'
       },
       {
         id: 3,
         username: 'user2',
-        password: bcrypt.hashSync('user2pass', 8),
+        password: bcrypt.hashSync('user2pass', 12),
         role: 'user'
       }
     ]
@@ -230,19 +231,19 @@ const initDB = () => {
       {
         id: 1,
         username: 'admin',
-        password: bcrypt.hashSync('adminpass', 8),
+        password: bcrypt.hashSync('adminpass', 12),
         role: 'admin'
       },
       {
         id: 2,
         username: 'user1',
-        password: bcrypt.hashSync('user1pass', 8),
+        password: bcrypt.hashSync('user1pass', 12),
         role: 'user'
       },
       {
         id: 3,
         username: 'user2',
-        password: bcrypt.hashSync('user2pass', 8),
+        password: bcrypt.hashSync('user2pass', 12),
         role: 'user'
       }
     ];
@@ -415,6 +416,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server running on http://localhost:${PORT}`);
 });

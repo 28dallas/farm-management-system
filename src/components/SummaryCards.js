@@ -1,10 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const SummaryCards = () => {
+  const [summary, setSummary] = useState({
+    totalRevenue: 0,
+    totalExpenses: 0,
+    netProfit: 0
+  });
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/summary`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setSummary(data);
+        }
+      } catch (err) {
+        console.error('Error fetching summary:', err);
+      }
+    };
+    fetchSummary();
+  }, []);
+
   const cards = [
-    { title: 'Total Revenue', value: 'KShs 0.00', color: 'text-green-600' },
-    { title: 'Total Expenses', value: 'KShs 0.00', color: 'text-red-600' },
-    { title: 'Net Profit', value: 'KShs 0.00', color: 'text-blue-600' }
+    { title: 'Total Revenue', value: `KShs ${summary.totalRevenue.toFixed(2)}`, color: 'text-green-600' },
+    { title: 'Total Expenses', value: `KShs ${summary.totalExpenses.toFixed(2)}`, color: 'text-red-600' },
+    { title: 'Net Profit', value: `KShs ${summary.netProfit.toFixed(2)}`, color: 'text-blue-600' }
   ];
 
   return (

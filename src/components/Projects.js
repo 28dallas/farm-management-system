@@ -13,11 +13,30 @@ const Projects = () => {
   const allProjects = [...projects, ...localProjects];
 
   useEffect(() => {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-  fetch(`${API_URL}/api/projects`)
-      .then(res => res.json())
-      .then(data => setProjects(data))
-      .catch(err => console.error('Error fetching projects:', err));
+    const fetchProjects = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/projects`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setProjects(Array.isArray(data) ? data : []);
+        } else {
+          console.error('Failed to fetch projects:', response.status);
+          setProjects([]);
+        }
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setProjects([]);
+      }
+    };
+    fetchProjects();
   }, []);
 
   return (

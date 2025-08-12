@@ -14,28 +14,29 @@ const Login = ({ onSwitchToSignup }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!username.trim() || !password.trim()) {
+      setError('Please fill in all fields');
+      return;
+    }
+    
     setLoading(true);
     setError('');
     setSuccess('');
     
     try {
-      const response = await apiService.login({ username, password });
-      console.log('Login response:', response); // Debug log
+      const response = await apiService.login({ username: username.trim(), password });
       
       if (response && response.token) {
         const { token, ...userData } = response;
-        setSuccess('Login successful! Redirecting...');
+        setSuccess('Login successful!');
         login(userData, token);
-      } else if (response) {
-        // Handle response without token
-        setSuccess('Login successful! Redirecting...');
-        login(response, 'temp-token');
       } else {
-        throw new Error('No response from server');
+        throw new Error('Invalid response from server');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
