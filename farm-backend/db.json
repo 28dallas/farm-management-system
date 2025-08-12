@@ -115,6 +115,15 @@
       "role": "user",
       "email": "neithank47@gmail.com",
       "displayName": "NATE"
+    },
+    {
+      "id": 1754997658953,
+      "username": "Nathan Sydo",
+      "password": "$2b$12$ODk7GTlFCtiInweVTTowJetZdDWhLaVLotZan/bo9RODRDna99/c2",
+      "role": "user",
+      "email": "neithank47@gmail.com",
+      "displayName": "Sydo",
+      "createdAt": "2025-08-12T11:20:59.375Z"
     }
   ]
 }

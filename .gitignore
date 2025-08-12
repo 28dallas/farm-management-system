@@ -1,1 +1,23 @@
+# Dependencies
 node_modules/
+*/node_modules/
+
+# Cache
+.cache/
+*/cache/
+
+# Build outputs
+build/
+dist/
+
+# Environment files
+.env.local
+.env.production
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db

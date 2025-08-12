@@ -28,10 +28,16 @@ const Signup = ({ onSwitchToLogin }) => {
       setSuccess('Signup successful! Logging you in...');
       login(userData, token);
     } catch (err) {
-      if (err.message.includes('Password must')) {
-        setError('Password must be at least 8 characters with uppercase, lowercase, number and special character');
+      console.error('Signup error:', err);
+      
+      if (err.message.includes('Password must') || err.message.includes('password')) {
+        setError('Weak password! Must have: 8+ characters, uppercase, lowercase, number, and special character (@$!%*?&)');
+      } else if (err.message.includes('Username already exists')) {
+        setError('Username already taken. Please choose a different username.');
+      } else if (err.message.includes('Username')) {
+        setError('Username must be at least 3 characters long.');
       } else {
-        setError(err.message || 'Signup failed');
+        setError(err.message || 'Signup failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -70,6 +76,9 @@ const Signup = ({ onSwitchToLogin }) => {
             className="border border-green-300 rounded px-3 py-2 w-full focus:ring-2 focus:ring-green-400"
             required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            Must have: 8+ characters, uppercase, lowercase, number, special character
+          </p>
         </div>
         <div>
           <label className="block mb-1 font-medium text-gray-700">Email</label>
