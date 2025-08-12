@@ -13,8 +13,27 @@ const Signup = ({ onSwitchToLogin }) => {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
   const [success, setSuccess] = useState('');
+  
+  // Password validation state
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false
+  });
+
+  // Validate password in real-time
+  const validatePassword = (pwd) => {
+    setPasswordValidation({
+      length: pwd.length >= 8,
+      uppercase: /[A-Z]/.test(pwd),
+      lowercase: /[a-z]/.test(pwd),
+      number: /\d/.test(pwd),
+      special: /[@$!%*?&]/.test(pwd)
+    });
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -72,13 +91,35 @@ const Signup = ({ onSwitchToLogin }) => {
           <input
             type="password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={e => {
+              setPassword(e.target.value);
+              validatePassword(e.target.value);
+            }}
             className="border border-green-300 rounded px-3 py-2 w-full focus:ring-2 focus:ring-green-400"
             required
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Must have: 8+ characters, uppercase, lowercase, number, special character
-          </p>
+          <div className="mt-2 text-xs space-y-1">
+            <div className={`flex items-center ${passwordValidation.length ? 'text-green-600' : 'text-red-500'}`}>
+              <span className="mr-2">{passwordValidation.length ? '✓' : '✗'}</span>
+              At least 8 characters
+            </div>
+            <div className={`flex items-center ${passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}`}>
+              <span className="mr-2">{passwordValidation.uppercase ? '✓' : '✗'}</span>
+              One uppercase letter (A-Z)
+            </div>
+            <div className={`flex items-center ${passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}`}>
+              <span className="mr-2">{passwordValidation.lowercase ? '✓' : '✗'}</span>
+              One lowercase letter (a-z)
+            </div>
+            <div className={`flex items-center ${passwordValidation.number ? 'text-green-600' : 'text-red-500'}`}>
+              <span className="mr-2">{passwordValidation.number ? '✓' : '✗'}</span>
+              One number (0-9)
+            </div>
+            <div className={`flex items-center ${passwordValidation.special ? 'text-green-600' : 'text-red-500'}`}>
+              <span className="mr-2">{passwordValidation.special ? '✓' : '✗'}</span>
+              One special character (@$!%*?&)
+            </div>
+          </div>
         </div>
         <div>
           <label className="block mb-1 font-medium text-gray-700">Email</label>
