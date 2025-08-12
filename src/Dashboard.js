@@ -95,7 +95,7 @@ const Dashboard = ({ user, onLogout }) => {
                 </div>
               )}
             </>
-{"status":"OK","timestamp":"2025-08-12T11:55:02.651Z"}          )}
+          )}
         </main>
       </div>
     </div>
