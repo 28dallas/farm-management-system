@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import AddProjectModal from './AddProjectModal';
 
-const Projects = () => {
+const Projects = ({ filters }) => {
   const [projects, setProjects] = useState([]);
   const [localProjects, setLocalProjects] = useState([]);
 
@@ -10,14 +10,24 @@ const Projects = () => {
     setLocalProjects(prev => [...prev, newProject]);
   };
 
-  const allProjects = [...projects, ...localProjects];
-
   useEffect(() => {
     const fetchProjects = async () => {
       try {
         const token = localStorage.getItem('token');
         const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-        const response = await fetch(`${API_URL}/api/projects`, {
+        
+        const params = new URLSearchParams();
+        if (filters?.project && filters.project !== 'All Projects') {
+          params.append('project', filters.project);
+        }
+        if (filters?.fromDate) {
+          params.append('fromDate', filters.fromDate);
+        }
+        if (filters?.toDate) {
+          params.append('toDate', filters.toDate);
+        }
+        
+        const response = await fetch(`${API_URL}/api/projects?${params}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -37,7 +47,23 @@ const Projects = () => {
       }
     };
     fetchProjects();
-  }, []);
+  }, [filters]);
+
+  // Filter local projects based on filters
+  const filteredLocalProjects = localProjects.filter(project => {
+    if (filters?.project && filters.project !== 'All Projects' && project.name !== filters.project) {
+      return false;
+    }
+    if (filters?.fromDate && project.startDate < filters.fromDate) {
+      return false;
+    }
+    if (filters?.toDate && project.startDate > filters.toDate) {
+      return false;
+    }
+    return true;
+  });
+
+  const allProjects = [...projects, ...filteredLocalProjects];
 
   return (
     <div className="bg-white rounded-lg shadow p-6">

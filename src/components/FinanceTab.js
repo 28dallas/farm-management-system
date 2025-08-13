@@ -5,7 +5,7 @@ import CashFlow from './CashFlow';
 import Projects from './Projects';
 import apiService from '../services/api';
 
-const FinanceTab = () => {
+const FinanceTab = ({ filters }) => {
   const [revenueByCrop, setRevenueByCrop] = useState([]);
   const [profitMargin, setProfitMargin] = useState(null);
   const [transactions, setTransactions] = useState([]);
@@ -13,37 +13,58 @@ const FinanceTab = () => {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
   useEffect(() => {
-    const API_URL = 'http://localhost:5001';
-    
-    apiService.request('/api/revenue-by-crop')
-      .then(data => setRevenueByCrop(data || []))
-      .catch(err => console.error('Failed to fetch revenue by crop:', err));
-    
-    apiService.getSummary()
-      .then(data => {
-        if (data.totalRevenue !== undefined && data.totalExpenses !== undefined) {
-          const margin = data.totalRevenue === 0 ? 0 : ((data.totalRevenue - data.totalExpenses) / data.totalRevenue) * 100;
-          setProfitMargin(margin);
+    const fetchFilteredData = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (filters?.project && filters.project !== 'All Projects') {
+          params.append('project', filters.project);
         }
-      })
-      .catch(err => console.error('Failed to fetch summary:', err));
+        if (filters?.fromDate) {
+          params.append('fromDate', filters.fromDate);
+        }
+        if (filters?.toDate) {
+          params.append('toDate', filters.toDate);
+        }
+        
+        // Fetch filtered revenue by crop
+        apiService.request(`/api/revenue-by-crop?${params}`)
+          .then(data => setRevenueByCrop(data || []))
+          .catch(err => console.error('Failed to fetch revenue by crop:', err));
+        
+        // Fetch filtered summary for profit margin
+        apiService.request(`/api/summary?${params}`)
+          .then(data => {
+            if (data.totalRevenue !== undefined && data.totalExpenses !== undefined) {
+              const margin = data.totalRevenue === 0 ? 0 : ((data.totalRevenue - data.totalExpenses) / data.totalRevenue) * 100;
+              setProfitMargin(margin);
+            }
+          })
+          .catch(err => console.error('Failed to fetch summary:', err));
+        
+        // Fetch filtered transactions
+        Promise.all([
+          apiService.request(`/api/income?${params}`),
+          apiService.request(`/api/expenses?${params}`)
+        ])
+        .then(([income, expenses]) => {
+          setTransactions([
+            ...(income || []).map(i => ({ ...i, type: 'Income' })),
+            ...(expenses || []).map(e => ({ ...e, type: 'Expense' }))
+          ].sort((a, b) => new Date(b.date) - new Date(a.date)));
+        })
+        .catch(err => console.error('Failed to fetch transactions:', err));
+        
+        // Fetch filtered projects
+        apiService.request(`/api/projects?${params}`)
+          .then(data => setProjects(data || []))
+          .catch(err => console.error('Failed to fetch projects:', err));
+      } catch (err) {
+        console.error('Error fetching filtered finance data:', err);
+      }
+    };
     
-    Promise.all([
-      apiService.getIncome(),
-      apiService.getExpenses()
-    ])
-    .then(([income, expenses]) => {
-      setTransactions([
-        ...(income || []).map(i => ({ ...i, type: 'Income' })),
-        ...(expenses || []).map(e => ({ ...e, type: 'Expense' }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date)));
-    })
-    .catch(err => console.error('Failed to fetch transactions:', err));
-    
-    apiService.getProjects()
-      .then(data => setProjects(data || []))
-      .catch(err => console.error('Failed to fetch projects:', err));
-  }, []);
+    fetchFilteredData();
+  }, [filters]);
 
   return (
     <div className="space-y-8">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AddIncomeModal from './AddIncomeModal';
 import apiService from '../services/api';
 
-const Income = () => {
+const Income = ({ filters }) => {
   const [income, setIncome] = useState([]);
   const [localIncome, setLocalIncome] = useState([]);
 
@@ -10,13 +10,54 @@ const Income = () => {
     setLocalIncome(prev => [...prev, newIncome]);
   };
 
-  const allIncome = [...income, ...localIncome];
-
   useEffect(() => {
-    apiService.getIncome()
-      .then(data => setIncome(data || []))
-      .catch(err => console.error('Failed to fetch income:', err));
-  }, []);
+    const fetchFilteredIncome = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (filters?.project && filters.project !== 'All Projects') {
+          params.append('project', filters.project);
+        }
+        if (filters?.fromDate) {
+          params.append('fromDate', filters.fromDate);
+        }
+        if (filters?.toDate) {
+          params.append('toDate', filters.toDate);
+        }
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/income?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setIncome(data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch filtered income:', err);
+      }
+    };
+    
+    fetchFilteredIncome();
+  }, [filters]);
+
+  // Filter local income based on filters
+  const filteredLocalIncome = localIncome.filter(item => {
+    if (filters?.project && filters.project !== 'All Projects' && item.project !== filters.project) {
+      return false;
+    }
+    if (filters?.fromDate && item.date < filters.fromDate) {
+      return false;
+    }
+    if (filters?.toDate && item.date > filters.toDate) {
+      return false;
+    }
+    return true;
+  });
+
+  const allIncome = [...income, ...filteredLocalIncome];
 
   return (
     <div className="bg-white rounded-lg shadow p-6">

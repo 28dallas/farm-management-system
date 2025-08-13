@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const SummaryCards = () => {
+const SummaryCards = ({ filters }) => {
   const [summary, setSummary] = useState({
     totalRevenue: 0,
     totalExpenses: 0,
@@ -12,7 +12,19 @@ const SummaryCards = () => {
       try {
         const token = localStorage.getItem('token');
         const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
-        const response = await fetch(`${API_URL}/api/summary`, {
+        
+        const params = new URLSearchParams();
+        if (filters?.project && filters.project !== 'All Projects') {
+          params.append('project', filters.project);
+        }
+        if (filters?.fromDate) {
+          params.append('fromDate', filters.fromDate);
+        }
+        if (filters?.toDate) {
+          params.append('toDate', filters.toDate);
+        }
+        
+        const response = await fetch(`${API_URL}/api/summary?${params}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -28,7 +40,7 @@ const SummaryCards = () => {
       }
     };
     fetchSummary();
-  }, []);
+  }, [filters]);
 
   const cards = [
     { title: 'Total Revenue', value: `KShs ${summary.totalRevenue.toFixed(2)}`, color: 'text-green-600' },

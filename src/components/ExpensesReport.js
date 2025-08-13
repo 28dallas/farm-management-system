@@ -6,7 +6,7 @@ import apiService from '../services/api';
 const defaultCategories = ['Utilities', 'Supplies', 'Labor', 'Transport'];
 const defaultUoMs = ['kg', 'litre', 'piece', 'hour'];
 
-const ExpensesReport = () => {
+const ExpensesReport = ({ filters }) => {
   const [expenses, setExpenses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('Select Filter Type');
@@ -24,10 +24,37 @@ const ExpensesReport = () => {
   };
 
   useEffect(() => {
-    apiService.getExpenses()
-      .then(data => setExpenses(data || []))
-      .catch(err => console.error('Error fetching expenses:', err));
-  }, []);
+    const fetchFilteredExpenses = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (filters?.project && filters.project !== 'All Projects') {
+          params.append('project', filters.project);
+        }
+        if (filters?.fromDate) {
+          params.append('fromDate', filters.fromDate);
+        }
+        if (filters?.toDate) {
+          params.append('toDate', filters.toDate);
+        }
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/expenses?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setExpenses(data || []);
+        }
+      } catch (err) {
+        console.error('Error fetching filtered expenses:', err);
+      }
+    };
+    
+    fetchFilteredExpenses();
+  }, [filters]);
 
   const allExpenses = [...expenses, ...localExpenses];
   const totalExpenses = allExpenses.reduce((sum, expense) => sum + (expense.amount || expense.totalCost || 0), 0);

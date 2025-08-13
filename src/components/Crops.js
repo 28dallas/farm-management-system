@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AddCropModal from './AddCropModal';
 import apiService from '../services/api';
 
-const Crops = () => {
+const Crops = ({ filters }) => {
   const [crops, setCrops] = useState([]);
   const [localCrops, setLocalCrops] = useState([]);
 
@@ -10,16 +10,41 @@ const Crops = () => {
     setLocalCrops(prev => [...prev, newCrop]);
   };
 
-  const allCrops = [...crops, ...localCrops];
-
   useEffect(() => {
-    apiService.getCrops()
-      .then(data => setCrops(data || []))
-      .catch(err => {
-        console.error('Failed to fetch crops:', err);
+    const fetchFilteredCrops = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (filters?.project && filters.project !== 'All Projects') {
+          params.append('project', filters.project);
+        }
+        if (filters?.fromDate) {
+          params.append('fromDate', filters.fromDate);
+        }
+        if (filters?.toDate) {
+          params.append('toDate', filters.toDate);
+        }
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/crops?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setCrops(data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch filtered crops:', err);
         setCrops([]);
-      });
-  }, []);
+      }
+    };
+    
+    fetchFilteredCrops();
+  }, [filters]);
+
+  const allCrops = [...crops, ...localCrops];
 
   return (
     <div className="bg-white rounded-lg shadow p-6">

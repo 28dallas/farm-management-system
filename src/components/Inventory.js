@@ -1,20 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import apiService from '../services/api';
 
-const Inventory = () => {
+const Inventory = ({ filters }) => {
   const [items, setItems] = useState([]);
   // Placeholder for chart data and summary
   const totalItems = items.length;
   const totalValue = items.reduce((sum, item) => sum + (item.totalValue || 0), 0);
 
   useEffect(() => {
-    apiService.getInventory()
-      .then(data => setItems(data || []))
-      .catch(err => {
-        console.error('Failed to fetch inventory:', err);
+    const fetchFilteredInventory = async () => {
+      try {
+        const params = new URLSearchParams();
+        if (filters?.project && filters.project !== 'All Projects') {
+          params.append('project', filters.project);
+        }
+        if (filters?.fromDate) {
+          params.append('fromDate', filters.fromDate);
+        }
+        if (filters?.toDate) {
+          params.append('toDate', filters.toDate);
+        }
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/inventory?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setItems(data || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch filtered inventory:', err);
         setItems([]);
-      });
-  }, []);
+      }
+    };
+    
+    fetchFilteredInventory();
+  }, [filters]);
 
   return (
     <div className="space-y-6">

@@ -22,6 +22,11 @@ const Dashboard = ({ user, onLogout }) => {
   const { isOpen, toggleSidebar, currentView, isCollapsed, setIsCollapsed } = useSidebar();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    project: 'All Projects',
+    fromDate: '',
+    toDate: ''
+  });
 
   useEffect(() => {
     const checkConnection = async () => {
@@ -70,13 +75,13 @@ const Dashboard = ({ user, onLogout }) => {
               {currentView === 'Dashboard' && (
                 <>
                   <div className="flex justify-between items-start mb-6">
-                    <Filters />
+                    <Filters onFilterChange={setFilters} />
                     <Actions />
                   </div>
-                  <SummaryCards />
-                  <Charts />
+                  <SummaryCards filters={filters} />
+                  <Charts filters={filters} />
                   <div className="mt-8">
-                    <Projects />
+                    <Projects filters={filters} />
                   </div>
                 </>
               )}
