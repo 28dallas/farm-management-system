@@ -133,6 +133,15 @@
       "email": "neithank47@gmail.com",
       "displayName": "BreezyD",
       "createdAt": "2025-08-12T15:37:59.148Z"
+    },
+    {
+      "id": 1755091608164,
+      "username": "Chris Brown",
+      "password": "$2b$12$pW06vj9.mZesqBnwW8que.9YvYM8s49xMoBIvOVo55cckf0yh0vRa",
+      "role": "user",
+      "email": "breezydallas6@gmail.com",
+      "displayName": "CB",
+      "createdAt": "2025-08-13T13:26:48.545Z"
     }
   ]
 }

@@ -82,6 +82,11 @@ const Login = ({ onSwitchToSignup }) => {
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
+        {loading && (
+          <div className="text-center text-sm text-gray-600 mt-2">
+            <div className="animate-pulse">This may take up to 60 seconds on first use...</div>
+          </div>
+        )}
         <div className="text-center mt-2">
           <button type="button" className="text-green-700 underline" onClick={onSwitchToSignup}>
             Don&apos;t have an account? Sign Up
