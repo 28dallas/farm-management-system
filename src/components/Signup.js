@@ -51,8 +51,8 @@ const Signup = ({ onSwitchToLogin }) => {
       
       if (err.message.includes('Password must') || err.message.includes('password')) {
         setError('Weak password! Must have: 8+ characters, uppercase, lowercase, number, and special character (@$!%*?&)');
-      } else if (err.message.includes('Username already exists')) {
-        setError('Username already taken. Please choose a different username.');
+      } else if (err.message.includes('Username already exists') || err.message.includes('already exists')) {
+        setError('An account with this username already exists. Please sign in instead or choose a different username.');
       } else if (err.message.includes('Username')) {
         setError('Username must be at least 3 characters long.');
       } else {
@@ -74,7 +74,22 @@ const Signup = ({ onSwitchToLogin }) => {
           <span className="text-2xl font-bold text-green-700 tracking-wide">Farm Manager</span>
         </div>
         <h2 className="text-xl font-bold mb-2 text-center text-gray-800">Create Your Account</h2>
-        {error && <div className="text-red-600 text-center">{error}</div>}
+        {error && (
+          <div className="text-red-600 text-center">
+            {error}
+            {error.includes('already exists') && (
+              <div className="mt-2">
+                <button 
+                  type="button" 
+                  onClick={onSwitchToLogin}
+                  className="text-green-600 underline hover:text-green-700"
+                >
+                  Sign In Instead
+                </button>
+              </div>
+            )}
+          </div>
+        )}
         {success && <div className="text-green-600 text-center">{success}</div>}
         <div>
           <label className="block mb-1 font-medium text-gray-700">Username</label>

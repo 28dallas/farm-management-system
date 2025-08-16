@@ -23,7 +23,7 @@ const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpens
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const totalCost = (parseFloat(formData.units || 0) * parseFloat(formData.costPerUnit || 0)) + parseFloat(formData.otherCosts || 0);
     const newExpense = {
@@ -31,9 +31,36 @@ const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpens
       category: selectedCategory,
       uom: selectedUom,
       totalCost,
-      id: Date.now()
+      amount: totalCost
     };
-    onAddExpense(newExpense);
+    
+    try {
+      // Save to backend
+      const token = localStorage.getItem('token');
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+      const response = await fetch(`${API_URL}/api/expenses`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newExpense)
+      });
+      
+      if (response.ok) {
+        const savedExpense = await response.json();
+        onAddExpense(savedExpense);
+      } else {
+        console.error('Failed to save expense');
+        // Still add to local state as fallback
+        onAddExpense({ ...newExpense, id: Date.now() });
+      }
+    } catch (err) {
+      console.error('Error saving expense:', err);
+      // Still add to local state as fallback
+      onAddExpense({ ...newExpense, id: Date.now() });
+    }
+    
     setFormData({
       date: '',
       project: '',
