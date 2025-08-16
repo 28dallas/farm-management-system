@@ -50,7 +50,6 @@ const Crops = ({ filters }) => {
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex gap-2 mb-4">
         <AddCropModal onAddCrop={handleAddCrop} />
-        <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">Add Crop Type</button>
       </div>
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
