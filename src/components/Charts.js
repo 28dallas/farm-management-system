@@ -73,15 +73,54 @@ const Charts = ({ filters }) => {
   }, [filters]);
 
   const processChartData = (income, expenses, filters) => {
-    // Group data by date or month based on filter range
     const labels = [];
     const incomeByPeriod = [];
     const expensesByPeriod = [];
     const revenueByPeriod = [];
     const profitMarginByPeriod = [];
     
-    if (filters?.fromDate && filters?.toDate) {
-      // Daily data for specific date range
+    // Check if single date is selected (fromDate equals toDate or only fromDate is set)
+    const isSingleDate = filters?.fromDate && (!filters?.toDate || filters.fromDate === filters.toDate);
+    
+    if (isSingleDate) {
+      // Single date view - show by project or activity type
+      const targetDate = filters.fromDate;
+      
+      if (filters?.project && filters.project !== 'All Projects') {
+        // Single project, single date - show breakdown by activity/crop
+        const projectIncome = income.filter(i => i.date === targetDate && i.project === filters.project);
+        const projectExpenses = expenses.filter(e => e.date === targetDate && e.project === filters.project);
+        
+        // Group by crop or activity
+        const activities = new Set([...projectIncome.map(i => i.crop || 'General'), ...projectExpenses.map(e => e.category || 'General')]);
+        
+        activities.forEach(activity => {
+          labels.push(activity);
+          const activityIncome = projectIncome.filter(i => (i.crop || 'General') === activity).reduce((sum, i) => sum + (i.totalIncome || i.amount || 0), 0);
+          const activityExpenses = projectExpenses.filter(e => (e.category || 'General') === activity).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0);
+          
+          incomeByPeriod.push(activityIncome);
+          expensesByPeriod.push(activityExpenses);
+          revenueByPeriod.push(activityIncome);
+          profitMarginByPeriod.push(activityIncome > 0 ? ((activityIncome - activityExpenses) / activityIncome * 100) : 0);
+        });
+      } else {
+        // All projects, single date - show by project
+        const projects = new Set([...income.filter(i => i.date === targetDate).map(i => i.project || 'Unknown'), ...expenses.filter(e => e.date === targetDate).map(e => e.project || 'Unknown')]);
+        
+        projects.forEach(project => {
+          labels.push(project);
+          const projectIncome = income.filter(i => i.date === targetDate && (i.project || 'Unknown') === project).reduce((sum, i) => sum + (i.totalIncome || i.amount || 0), 0);
+          const projectExpenses = expenses.filter(e => e.date === targetDate && (e.project || 'Unknown') === project).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0);
+          
+          incomeByPeriod.push(projectIncome);
+          expensesByPeriod.push(projectExpenses);
+          revenueByPeriod.push(projectIncome);
+          profitMarginByPeriod.push(projectIncome > 0 ? ((projectIncome - projectExpenses) / projectIncome * 100) : 0);
+        });
+      }
+    } else if (filters?.fromDate && filters?.toDate) {
+      // Date range view - show daily data
       const start = new Date(filters.fromDate);
       const end = new Date(filters.toDate);
       
@@ -89,8 +128,8 @@ const Charts = ({ filters }) => {
         const dateStr = d.toISOString().split('T')[0];
         labels.push(dateStr);
         
-        const dayIncome = income.filter(i => i.date === dateStr).reduce((sum, i) => sum + (i.amount || 0), 0);
-        const dayExpenses = expenses.filter(e => e.date === dateStr).reduce((sum, e) => sum + (e.amount || 0), 0);
+        const dayIncome = income.filter(i => i.date === dateStr).reduce((sum, i) => sum + (i.totalIncome || i.amount || 0), 0);
+        const dayExpenses = expenses.filter(e => e.date === dateStr).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0);
         
         incomeByPeriod.push(dayIncome);
         expensesByPeriod.push(dayExpenses);
@@ -98,7 +137,7 @@ const Charts = ({ filters }) => {
         profitMarginByPeriod.push(dayIncome > 0 ? ((dayIncome - dayExpenses) / dayIncome * 100) : 0);
       }
     } else {
-      // Monthly data for broader view
+      // Default monthly view
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const currentYear = new Date().getFullYear();
       
@@ -108,12 +147,12 @@ const Charts = ({ filters }) => {
         const monthIncome = income.filter(i => {
           const itemDate = new Date(i.date);
           return itemDate.getMonth() === index && itemDate.getFullYear() === currentYear;
-        }).reduce((sum, i) => sum + (i.amount || 0), 0);
+        }).reduce((sum, i) => sum + (i.totalIncome || i.amount || 0), 0);
         
         const monthExpenses = expenses.filter(e => {
           const itemDate = new Date(e.date);
           return itemDate.getMonth() === index && itemDate.getFullYear() === currentYear;
-        }).reduce((sum, e) => sum + (e.amount || 0), 0);
+        }).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0);
         
         incomeByPeriod.push(monthIncome);
         expensesByPeriod.push(monthExpenses);

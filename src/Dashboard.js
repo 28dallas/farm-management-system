@@ -78,6 +78,33 @@ const Dashboard = ({ user, onLogout }) => {
                     <Filters onFilterChange={setFilters} />
                     <Actions />
                   </div>
+                  
+                  {/* Data Context Indicator */}
+                  {(filters.project !== 'All Projects' || filters.fromDate || filters.toDate) && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                      <h4 className="font-semibold text-blue-800 mb-2">Showing Data For:</h4>
+                      <div className="text-blue-700">
+                        {filters.project !== 'All Projects' && (
+                          <span className="inline-block bg-blue-100 px-2 py-1 rounded mr-2 mb-1">
+                            Project: {filters.project}
+                          </span>
+                        )}
+                        {filters.fromDate && (
+                          <span className="inline-block bg-blue-100 px-2 py-1 rounded mr-2 mb-1">
+                            {filters.fromDate === filters.toDate || !filters.toDate 
+                              ? `Date: ${filters.fromDate}` 
+                              : `Period: ${filters.fromDate} to ${filters.toDate}`}
+                          </span>
+                        )}
+                        {!filters.project || filters.project === 'All Projects' ? (
+                          <span className="text-sm">All projects and activities</span>
+                        ) : (
+                          <span className="text-sm">All activities for selected project</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   <SummaryCards filters={filters} />
                   <Charts filters={filters} />
                   <div className="mt-8">

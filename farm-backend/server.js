@@ -315,7 +315,24 @@ app.get('/api/health', (req, res) => {
 // Income endpoints
 app.get('/api/income', authenticateToken, (req, res) => {
   const data = readDB();
-  res.json(data.income);
+  let income = data.income || [];
+  
+  // Apply filters
+  const { project, fromDate, toDate } = req.query;
+  
+  if (project && project !== 'All Projects') {
+    income = income.filter(item => item.project === project);
+  }
+  
+  if (fromDate) {
+    income = income.filter(item => item.date >= fromDate);
+  }
+  
+  if (toDate) {
+    income = income.filter(item => item.date <= toDate);
+  }
+  
+  res.json(income);
 });
 
 app.post('/api/income', [
@@ -339,7 +356,24 @@ app.post('/api/income', [
 // Expenses endpoints
 app.get('/api/expenses', authenticateToken, (req, res) => {
   const data = readDB();
-  res.json(data.expenses);
+  let expenses = data.expenses || [];
+  
+  // Apply filters
+  const { project, fromDate, toDate } = req.query;
+  
+  if (project && project !== 'All Projects') {
+    expenses = expenses.filter(item => item.project === project);
+  }
+  
+  if (fromDate) {
+    expenses = expenses.filter(item => item.date >= fromDate);
+  }
+  
+  if (toDate) {
+    expenses = expenses.filter(item => item.date <= toDate);
+  }
+  
+  res.json(expenses);
 });
 
 app.post('/api/expenses', [
@@ -363,7 +397,24 @@ app.post('/api/expenses', [
 // Projects endpoints
 app.get('/api/projects', authenticateToken, (req, res) => {
   const data = readDB();
-  res.json(data.projects);
+  let projects = data.projects || [];
+  
+  // Apply filters
+  const { project, fromDate, toDate } = req.query;
+  
+  if (project && project !== 'All Projects') {
+    projects = projects.filter(item => item.name === project);
+  }
+  
+  if (fromDate) {
+    projects = projects.filter(item => item.startDate >= fromDate);
+  }
+  
+  if (toDate) {
+    projects = projects.filter(item => item.startDate <= toDate);
+  }
+  
+  res.json(projects);
 });
 
 app.post('/api/projects', [
@@ -425,9 +476,31 @@ app.get('/api/monthly-financials', authenticateToken, (req, res) => {
 // Summary endpoint
 app.get('/api/summary', authenticateToken, (req, res) => {
   const data = readDB();
-  const totalRevenue = data.income.reduce((sum, item) => sum + (item.amount || 0), 0);
-  const totalExpenses = data.expenses.reduce((sum, item) => sum + (item.amount || 0), 0);
+  let income = data.income || [];
+  let expenses = data.expenses || [];
+  
+  // Apply filters
+  const { project, fromDate, toDate } = req.query;
+  
+  if (project && project !== 'All Projects') {
+    income = income.filter(item => item.project === project);
+    expenses = expenses.filter(item => item.project === project);
+  }
+  
+  if (fromDate) {
+    income = income.filter(item => item.date >= fromDate);
+    expenses = expenses.filter(item => item.date >= fromDate);
+  }
+  
+  if (toDate) {
+    income = income.filter(item => item.date <= toDate);
+    expenses = expenses.filter(item => item.date <= toDate);
+  }
+  
+  const totalRevenue = income.reduce((sum, item) => sum + (item.totalIncome || item.amount || 0), 0);
+  const totalExpenses = expenses.reduce((sum, item) => sum + (item.totalCost || item.amount || 0), 0);
   const netProfit = totalRevenue - totalExpenses;
+  
   res.json({
     totalRevenue,
     totalExpenses,

@@ -21,39 +21,45 @@ const ExpensesReport = ({ filters }) => {
 
   const handleAddExpense = (newExpense) => {
     setLocalExpenses(prev => [...prev, newExpense]);
+    // Refresh expenses from backend to get the latest data
+    setTimeout(() => {
+      fetchExpenses();
+    }, 500);
+  };
+
+  const fetchExpenses = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.project && filters.project !== 'All Projects') {
+        params.append('project', filters.project);
+      }
+      if (filters?.fromDate) {
+        params.append('fromDate', filters.fromDate);
+      }
+      if (filters?.toDate) {
+        params.append('toDate', filters.toDate);
+      }
+      
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/expenses?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setExpenses(data || []);
+        // Clear local expenses since they're now in the backend data
+        setLocalExpenses([]);
+      }
+    } catch (err) {
+      console.error('Error fetching expenses:', err);
+    }
   };
 
   useEffect(() => {
-    const fetchFilteredExpenses = async () => {
-      try {
-        const params = new URLSearchParams();
-        if (filters?.project && filters.project !== 'All Projects') {
-          params.append('project', filters.project);
-        }
-        if (filters?.fromDate) {
-          params.append('fromDate', filters.fromDate);
-        }
-        if (filters?.toDate) {
-          params.append('toDate', filters.toDate);
-        }
-        
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/expenses?${params}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setExpenses(data || []);
-        }
-      } catch (err) {
-        console.error('Error fetching filtered expenses:', err);
-      }
-    };
-    
-    fetchFilteredExpenses();
+    fetchExpenses();
   }, [filters]);
 
   const allExpenses = [...expenses, ...localExpenses];
@@ -138,26 +144,29 @@ const ExpensesReport = ({ filters }) => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {expenses.length === 0 ? (
+            {allExpenses.length === 0 ? (
               <tr>
-                <td colSpan="12" className="px-4 py-8 text-center text-gray-500">
+                <td colSpan="11" className="px-4 py-8 text-center text-gray-500">
                   No expenses recorded yet
                 </td>
               </tr>
             ) : (
-              [...allExpenses, ...Array(Math.max(0, 3 - allExpenses.length)).fill(null)].map((expense, index) => (
-                <tr key={expense?.id || `empty-${index}`}>
+              allExpenses.map((expense, index) => (
+                <tr key={expense?.id || `expense-${index}`}>
                   <td className="px-4 py-3 text-sm text-gray-900">{expense?.date || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">-</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.project || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.description || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-900">{expense?.category || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.category || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">-</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">-</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">-</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">-</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.amount ? `KShs ${expense.amount.toLocaleString()}` : expense?.totalCost ? `KShs ${expense.totalCost.toLocaleString()}` : '-'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.status === 'Paid' ? 'Yes' : expense ? 'No' : '-'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-900">-</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.uom || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.units || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.costPerUnit ? `KShs ${expense.costPerUnit}` : '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.otherCosts ? `KShs ${expense.otherCosts}` : '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.totalCost ? `KShs ${expense.totalCost.toLocaleString()}` : expense?.amount ? `KShs ${expense.amount.toLocaleString()}` : '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{expense?.status === 'Paid' ? 'Yes' : 'No'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded mr-2 text-xs">Edit</button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs">Delete</button>
+                  </td>
                 </tr>
               ))
             )}

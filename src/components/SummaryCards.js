@@ -24,16 +24,42 @@ const SummaryCards = ({ filters }) => {
           params.append('toDate', filters.toDate);
         }
         
-        const response = await fetch(`${API_URL}/api/summary?${params}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        // Fetch income and expenses data directly
+        const [incomeRes, expensesRes] = await Promise.all([
+          fetch(`${API_URL}/api/income?${params}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch(`${API_URL}/api/expenses?${params}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          })
+        ]);
         
-        if (response.ok) {
-          const data = await response.json();
-          setSummary(data);
+        if (incomeRes.ok && expensesRes.ok) {
+          const incomeData = await incomeRes.json();
+          const expensesData = await expensesRes.json();
+          
+          // Calculate totals from actual data
+          const totalRevenue = incomeData.reduce((sum, item) => {
+            return sum + (item.totalIncome || item.amount || 0);
+          }, 0);
+          
+          const totalExpenses = expensesData.reduce((sum, item) => {
+            return sum + (item.totalCost || item.amount || 0);
+          }, 0);
+          
+          const netProfit = totalRevenue - totalExpenses;
+          
+          setSummary({
+            totalRevenue,
+            totalExpenses,
+            netProfit
+          });
         }
       } catch (err) {
         console.error('Error fetching summary:', err);
