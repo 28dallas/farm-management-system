@@ -37,7 +37,7 @@ const Dashboard = ({ user, onLogout }) => {
         console.error('Health check failed:', err);
         setError('Unable to connect to server');
       } finally {
-        setLoading(false);
+        setLoading(false); 
       }
     };
     checkConnection();
