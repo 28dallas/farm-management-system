@@ -7,41 +7,52 @@ const Crops = ({ filters }) => {
   const [localCrops, setLocalCrops] = useState([]);
 
   const handleAddCrop = (newCrop) => {
-    setLocalCrops(prev => [...prev, newCrop]);
+    const updatedCrops = [...localCrops, newCrop];
+    setLocalCrops(updatedCrops);
+    localStorage.setItem('crops', JSON.stringify(updatedCrops));
   };
 
   useEffect(() => {
-    const fetchFilteredCrops = async () => {
-      try {
-        const params = new URLSearchParams();
-        if (filters?.project && filters.project !== 'All Projects') {
-          params.append('project', filters.project);
-        }
-        if (filters?.fromDate) {
-          params.append('fromDate', filters.fromDate);
-        }
-        if (filters?.toDate) {
-          params.append('toDate', filters.toDate);
-        }
-        
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/crops?${params}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setCrops(data || []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch filtered crops:', err);
-        setCrops([]);
+    const fetchCrops = async () => {
+      const storedCrops = localStorage.getItem('crops');
+      if (storedCrops) {
+        setLocalCrops(JSON.parse(storedCrops));
       }
+      
+      const fetchFilteredCrops = async () => {
+        try {
+          const params = new URLSearchParams();
+          if (filters?.project && filters.project !== 'All Projects') {
+            params.append('project', filters.project);
+          }
+          if (filters?.fromDate) {
+            params.append('fromDate', filters.fromDate);
+          }
+          if (filters?.toDate) {
+            params.append('toDate', filters.toDate);
+          }
+          
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/crops?${params}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setCrops(data || []);
+          }
+        } catch (err) {
+          console.error('Failed to fetch filtered crops:', err);
+          setCrops([]);
+        }
+      };
+      
+      fetchFilteredCrops();
     };
-    
-    fetchFilteredCrops();
+
+    fetchCrops();
   }, [filters]);
 
   const allCrops = [...crops, ...localCrops];

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AddProjectModal = ({ onAddProject }) => {
   const [show, setShow] = useState(false);
+  const [crops, setCrops] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     crop: '',
@@ -12,6 +13,13 @@ const AddProjectModal = ({ onAddProject }) => {
     status: 'Planning',
     startDate: ''
   });
+
+  useEffect(() => {
+    const storedCrops = localStorage.getItem('crops');
+    if (storedCrops) {
+      setCrops(JSON.parse(storedCrops));
+    }
+  }, []);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -63,14 +71,20 @@ const AddProjectModal = ({ onAddProject }) => {
                 placeholder="Project Name"
                 required
               />
-              <input
+              <select
                 name="crop"
                 value={formData.crop}
                 onChange={handleInputChange}
                 className="border rounded px-3 py-2"
-                placeholder="Crop"
                 required
-              />
+              >
+                <option value="">Select Crop</option>
+                {crops.map((crop, index) => (
+                  <option key={index} value={crop.name}>
+                    {crop.name}
+                  </option>
+                ))}
+              </select>
               <input
                 name="acreage"
                 value={formData.acreage}

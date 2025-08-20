@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpense }) => {
+const AddExpenseModal = ({ categories = [], setCategories, uoms = [], setUoms, projects = [], onAddExpense }) => {
   const [show, setShow] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [newUom, setNewUom] = useState('');
@@ -35,7 +35,6 @@ const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpens
     };
     
     try {
-      // Save to backend
       const token = localStorage.getItem('token');
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
       const response = await fetch(`${API_URL}/api/expenses`, {
@@ -52,12 +51,10 @@ const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpens
         onAddExpense(savedExpense);
       } else {
         console.error('Failed to save expense');
-        // Still add to local state as fallback
         onAddExpense({ ...newExpense, id: Date.now() });
       }
     } catch (err) {
       console.error('Error saving expense:', err);
-      // Still add to local state as fallback
       onAddExpense({ ...newExpense, id: Date.now() });
     }
     
@@ -111,14 +108,18 @@ const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpens
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Project</label>
-                <input
-                  type="text"
+                <select
                   name="project"
                   value={formData.project}
                   onChange={handleInputChange}
                   className="w-full border border-gray-300 rounded px-3 py-2"
-                  placeholder="Project name"
-                />
+                  required
+                >
+                  <option value="">Select Project</option>
+                  {projects.map((project, idx) => (
+                    <option key={idx} value={project.name}>{project.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium mb-1">Description</label>
@@ -145,6 +146,18 @@ const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpens
                     <option key={idx} value={cat}>{cat}</option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newCategory) {
+                      setCategories(prev => [...prev, newCategory]);
+                      setNewCategory('');
+                    }
+                  }}
+                  className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
+                >
+                  Add Category
+                </button>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">UoM</label>
@@ -158,6 +171,18 @@ const AddExpenseModal = ({ categories, setCategories, uoms, setUoms, onAddExpens
                     <option key={idx} value={u}>{u}</option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (newUom) {
+                      setUoms(prev => [...prev, newUom]);
+                      setNewUom('');
+                    }
+                  }}
+                  className="bg-blue-500 text-white px-2 py-1 rounded mt-2"
+                >
+                  Add UoM
+                </button>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Units</label>
