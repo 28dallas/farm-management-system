@@ -14,29 +14,28 @@ const Login = ({ onSwitchToSignup }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!username.trim() || !password.trim()) {
-      setError('Please fill in all fields');
-      return;
-    }
-    
     setLoading(true);
     setError('');
     setSuccess('');
     
     try {
-      const response = await apiService.login({ username: username.trim(), password });
+      const response = await apiService.login({ username, password });
+      console.log('Login response:', response); // Debug log
       
       if (response && response.token) {
         const { token, ...userData } = response;
-        setSuccess('Login successful!');
+        setSuccess('Login successful! Redirecting...');
         login(userData, token);
+      } else if (response) {
+        // Handle response without token
+        setSuccess('Login successful! Redirecting...');
+        login(response, 'temp-token');
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error('No response from server');
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -82,11 +81,6 @@ const Login = ({ onSwitchToSignup }) => {
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
-        {loading && (
-          <div className="text-center text-sm text-gray-600 mt-2">
-            <div className="animate-pulse">This may take up to 60 seconds on first use...</div>
-          </div>
-        )}
         <div className="text-center mt-2">
           <button type="button" className="text-green-700 underline" onClick={onSwitchToSignup}>
             Don&apos;t have an account? Sign Up

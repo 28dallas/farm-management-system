@@ -13,27 +13,8 @@ const Signup = ({ onSwitchToLogin }) => {
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  
-  // Password validation state
-  const [passwordValidation, setPasswordValidation] = useState({
-    length: false,
-    uppercase: false,
-    lowercase: false,
-    number: false,
-    special: false
-  });
 
-  // Validate password in real-time
-  const validatePassword = (pwd) => {
-    setPasswordValidation({
-      length: pwd.length >= 8,
-      uppercase: /[A-Z]/.test(pwd),
-      lowercase: /[a-z]/.test(pwd),
-      number: /\d/.test(pwd),
-      special: /[@$!%*?&]/.test(pwd)
-    });
-  };
+  const [success, setSuccess] = useState('');
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -47,16 +28,10 @@ const Signup = ({ onSwitchToLogin }) => {
       setSuccess('Signup successful! Logging you in...');
       login(userData, token);
     } catch (err) {
-      console.error('Signup error:', err);
-      
-      if (err.message.includes('Password must') || err.message.includes('password')) {
-        setError('Weak password! Must have: 8+ characters, uppercase, lowercase, number, and special character (@$!%*?&)');
-      } else if (err.message.includes('Username already exists') || err.message.includes('already exists')) {
-        setError('An account with this username already exists. Please sign in instead or choose a different username.');
-      } else if (err.message.includes('Username')) {
-        setError('Username must be at least 3 characters long.');
+      if (err.message.includes('Password must')) {
+        setError('Password must be at least 8 characters with uppercase, lowercase, number and special character');
       } else {
-        setError(err.message || 'Signup failed. Please try again.');
+        setError(err.message || 'Signup failed');
       }
     } finally {
       setLoading(false);
@@ -74,22 +49,7 @@ const Signup = ({ onSwitchToLogin }) => {
           <span className="text-2xl font-bold text-green-700 tracking-wide">Farm Manager</span>
         </div>
         <h2 className="text-xl font-bold mb-2 text-center text-gray-800">Create Your Account</h2>
-        {error && (
-          <div className="text-red-600 text-center">
-            {error}
-            {error.includes('already exists') && (
-              <div className="mt-2">
-                <button 
-                  type="button" 
-                  onClick={onSwitchToLogin}
-                  className="text-green-600 underline hover:text-green-700"
-                >
-                  Sign In Instead
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        {error && <div className="text-red-600 text-center">{error}</div>}
         {success && <div className="text-green-600 text-center">{success}</div>}
         <div>
           <label className="block mb-1 font-medium text-gray-700">Username</label>
@@ -106,35 +66,10 @@ const Signup = ({ onSwitchToLogin }) => {
           <input
             type="password"
             value={password}
-            onChange={e => {
-              setPassword(e.target.value);
-              validatePassword(e.target.value);
-            }}
+            onChange={e => setPassword(e.target.value)}
             className="border border-green-300 rounded px-3 py-2 w-full focus:ring-2 focus:ring-green-400"
             required
           />
-          <div className="mt-2 text-xs space-y-1">
-            <div className={`flex items-center ${passwordValidation.length ? 'text-green-600' : 'text-red-500'}`}>
-              <span className="mr-2">{passwordValidation.length ? '✓' : '✗'}</span>
-              At least 8 characters
-            </div>
-            <div className={`flex items-center ${passwordValidation.uppercase ? 'text-green-600' : 'text-red-500'}`}>
-              <span className="mr-2">{passwordValidation.uppercase ? '✓' : '✗'}</span>
-              One uppercase letter (A-Z)
-            </div>
-            <div className={`flex items-center ${passwordValidation.lowercase ? 'text-green-600' : 'text-red-500'}`}>
-              <span className="mr-2">{passwordValidation.lowercase ? '✓' : '✗'}</span>
-              One lowercase letter (a-z)
-            </div>
-            <div className={`flex items-center ${passwordValidation.number ? 'text-green-600' : 'text-red-500'}`}>
-              <span className="mr-2">{passwordValidation.number ? '✓' : '✗'}</span>
-              One number (0-9)
-            </div>
-            <div className={`flex items-center ${passwordValidation.special ? 'text-green-600' : 'text-red-500'}`}>
-              <span className="mr-2">{passwordValidation.special ? '✓' : '✗'}</span>
-              One special character (@$!%*?&)
-            </div>
-          </div>
         </div>
         <div>
           <label className="block mb-1 font-medium text-gray-700">Email</label>
@@ -159,13 +94,8 @@ const Signup = ({ onSwitchToLogin }) => {
           className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold shadow"
           disabled={loading}
         >
-          {loading ? 'Creating account...' : 'Sign Up'}
+          {loading ? 'Signing up...' : 'Sign Up'}
         </button>
-        {loading && (
-          <div className="text-center text-sm text-gray-600 mt-2">
-            <div className="animate-pulse">This may take up to 60 seconds on first use...</div>
-          </div>
-        )}
         <div className="text-center mt-2">
           <button type="button" className="text-green-700 underline" onClick={onSwitchToLogin}>
             Already have an account? Sign In
