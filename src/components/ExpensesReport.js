@@ -5,12 +5,14 @@ import apiService from '../services/api';
 
 const defaultCategories = ['Utilities', 'Supplies', 'Labor', 'Transport'];
 const defaultUoMs = ['kg', 'litre', 'piece', 'hour'];
+const projects = ['All Projects', 'Project A', 'Project B', 'Project C'];
 
 const ExpensesReport = ({ filters }) => {
   const [expenses, setExpenses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('Select Filter Type');
   const [filterValue, setFilterValue] = useState('');
+  const [selectedProject, setSelectedProject] = useState('All Projects');
   const [categories, setCategories] = useState([...defaultCategories]);
   const [uoms, setUoms] = useState([...defaultUoMs]);
   const [newCategory, setNewCategory] = useState('');
@@ -62,24 +64,55 @@ const ExpensesReport = ({ filters }) => {
     fetchExpenses();
   }, [filters]);
 
-  const allExpenses = [...expenses, ...localExpenses];
-  const totalExpenses = allExpenses.reduce((sum, expense) => sum + (expense.amount || expense.totalCost || 0), 0);
+  // Filter expenses based on selected project
+  const filteredExpenses = [...expenses, ...localExpenses].filter(expense => {
+    if (selectedProject === 'All Projects') {
+      return true;
+    }
+    return expense.project === selectedProject;
+  });
+
+  const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || expense.totalCost || 0), 0);
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Project Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Expenses</h3>
-          <p className="text-3xl font-bold text-gray-800">KShs {totalExpenses.toLocaleString()}</p>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            {filters.project === 'All Projects' ? 'All Projects' : filters.project} Summary
+          </h3>
+          <div className="space-y-2">
+            <p className="text-xl font-bold text-gray-800">
+              KShs {projectSummary.totalIncome.toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-600">Total Income</p>
+            <p className="text-xl font-bold text-red-600">
+              KShs {projectSummary.totalExpenses.toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-600">Total Expenses</p>
+            <p className="text-xl font-bold text-green-600">
+              KShs {projectSummary.totalProfit.toLocaleString()}
+            </p>
+            <p className="text-sm text-gray-600">Total Profit</p>
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Payable</h3>
-          <p className="text-3xl font-bold text-gray-800">KShs 0.00</p>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Total Paid</h3>
-          <p className="text-3xl font-bold text-gray-800">KShs {totalExpenses.toLocaleString()}</p>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Project Overview</h3>
+          <div className="space-y-2">
+            <p className="text-xl font-bold text-blue-600">
+              {projectSummary.totalCrops}
+            </p>
+            <p className="text-sm text-gray-600">Total Crops</p>
+            <p className="text-xl font-bold text-purple-600">
+              {projectSummary.totalAcreage}
+            </p>
+            <p className="text-sm text-gray-600">Total Acreage</p>
+            <p className="text-xl font-bold text-orange-600">
+              {projectSummary.totalYield}
+            </p>
+            <p className="text-sm text-gray-600">Total Yield</p>
+          </div>
         </div>
       </div>
 
@@ -90,6 +123,7 @@ const ExpensesReport = ({ filters }) => {
         setCategories={setCategories}
         uoms={uoms}
         setUoms={setUoms}
+        projects={projects.map(project => ({ name: project }))}
         onAddExpense={handleAddExpense}
       />
 
@@ -102,6 +136,20 @@ const ExpensesReport = ({ filters }) => {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="border border-gray-300 rounded-lg px-4 py-2 w-64"
         />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Project</label>
+          <select
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="border border-gray-300 rounded-lg px-4 py-2"
+          >
+            {projects.map((project) => (
+              <option key={project} value={project}>
+                {project}
+              </option>
+            ))}
+          </select>
+        </div>
         <span className="text-gray-700">Filter By:</span>
         <select
           value={filterType}
@@ -144,14 +192,16 @@ const ExpensesReport = ({ filters }) => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {allExpenses.length === 0 ? (
+            {filteredExpenses.length === 0 ? (
               <tr>
                 <td colSpan="11" className="px-4 py-8 text-center text-gray-500">
-                  No expenses recorded yet
+                  {selectedProject === 'All Projects' 
+                    ? 'No expenses recorded yet' 
+                    : `No expenses found for ${selectedProject}`}
                 </td>
               </tr>
             ) : (
-              allExpenses.map((expense, index) => (
+              filteredExpenses.map((expense, index) => (
                 <tr key={expense?.id || `expense-${index}`}>
                   <td className="px-4 py-3 text-sm text-gray-900">{expense?.date || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-900">{expense?.project || '-'}</td>

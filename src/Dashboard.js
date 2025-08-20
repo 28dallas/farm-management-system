@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import Filters from './components/Filters';
 import Actions from './components/Actions';
 import SummaryCards from './components/SummaryCards';
-import Charts from './components/Charts';
+import EnhancedCharts from './components/EnhancedCharts';
 import Projects from './components/Projects';
 import Crops from './components/Crops';
 import Income from './components/Income';
@@ -106,7 +106,7 @@ const Dashboard = ({ user, onLogout }) => {
                   )}
                   
                   <SummaryCards filters={filters} />
-                  <Charts filters={filters} />
+                  <EnhancedCharts filters={filters} />
                   <div className="mt-8">
                     <Projects filters={filters} />
                   </div>
