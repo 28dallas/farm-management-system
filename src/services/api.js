@@ -1,4 +1,7 @@
-const API_URL = process.env.REACT_APP_API_URL || 'https://farmbackend-ofsu.onrender.com';
+// Use localhost for development, remote URL for production
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5001'
+  : process.env.REACT_APP_API_URL || 'https://farmbackend-ofsu.onrender.com';
 
 class ApiService {
   constructor() {
