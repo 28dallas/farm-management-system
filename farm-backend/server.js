@@ -44,7 +44,34 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
-app.use(bodyParser.json({ limit: '10mb' }));
+
+// Add better JSON parsing error handling
+app.use((req, res, next) => {
+  if (req.method === 'POST' && req.headers['content-type']?.includes('application/json')) {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        req.body = JSON.parse(body);
+        next();
+      } catch (error) {
+        logger.warn('Invalid JSON received', { 
+          url: req.url, 
+          body: body.substring(0, 200),
+          error: error.message 
+        });
+        return res.status(400).json({ 
+          error: 'Invalid JSON format', 
+          message: 'Please check your request data format' 
+        });
+      }
+    });
+  } else {
+    bodyParser.json({ limit: '10mb' })(req, res, next);
+  }
+});
 
 // Rate limiting
 const authLimiter = rateLimit({

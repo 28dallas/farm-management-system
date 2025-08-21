@@ -110,37 +110,48 @@ const EnhancedCharts = ({ filters }) => {
         }
       });
       
+      // Calculate profit margins
+      const profitMargins = Object.keys(cashFlowByProject).map(project => {
+        const revenue = income.filter(i => i.date === targetDate && (i.project || 'Unknown') === project).reduce((sum, i) => sum + (i.totalIncome || i.amount || 0), 0);
+        const costs = expenses.filter(e => e.date === targetDate && (e.project || 'Unknown') === project).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0);
+        return revenue > 0 ? ((revenue - costs) / revenue * 100) : 0;
+      });
+      
       return {
         cashFlow: {
           labels: Object.keys(cashFlowByProject),
-          data: Object.values(cashFlowByProject),
-          title: `Cash Flow by Project - ${targetDate}`
+          income: Object.values(cashFlowByProject).map(val => Math.max(0, val)),
+          expenses: Object.values(cashFlowByProject).map(val => Math.abs(Math.min(0, val))),
         },
-        projectRevenue: {
+        profitMargin: {
           labels: Object.keys(cashFlowByProject),
-          data: Object.values(cashFlowByProject),
-          title: `Revenue by Project - ${targetDate}`
+          data: profitMargins
         },
         cropDistribution: {
           labels: revenueByCrop.map(item => item.crop),
           data: revenueByCrop.map(item => item.totalRevenue || 0),
-          title: `Revenue by Crop - ${targetDate}`
         },
         expenseBreakdown: {
           labels: [...new Set(expenses.map(e => e.category || 'Other'))],
           data: [...new Set(expenses.map(e => e.category || 'Other'))].map(category => 
             expenses.filter(e => (e.category || 'Other') === category).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0)
           ),
-          title: `Expense Breakdown - ${targetDate}`
+        },
+        monthlyTrend: {
+          labels: [],
+          income: [],
+          expenses: []
+        },
+        projectRevenue: {
+          labels: Object.keys(cashFlowByProject),
+          data: Object.values(cashFlowByProject)
         }
       };
     } else {
       // Date range view - show trends
       const monthlyData = {};
-      const dailyData = {};
-      
-      // Monthly trend
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
       months.forEach((month, index) => {
         const monthIncome = income.filter(i => {
           const date = new Date(i.date);
@@ -155,24 +166,47 @@ const EnhancedCharts = ({ filters }) => {
         monthlyData[month] = { income: monthIncome, expenses: monthExpenses };
       });
       
+      // Project revenue data
+      const projectRevenue = {};
+      income.forEach(item => {
+        projectRevenue[item.project || 'Unknown'] = (projectRevenue[item.project || 'Unknown'] || 0) + (item.totalIncome || item.amount || 0);
+      });
+      
+      // Calculate profit margins for projects
+      const projectProfitMargins = Object.keys(projectRevenue).map(project => {
+        const revenue = income.filter(i => (i.project || 'Unknown') === project).reduce((sum, i) => sum + (i.totalIncome || i.amount || 0), 0);
+        const costs = expenses.filter(e => (e.project || 'Unknown') === project).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0);
+        return revenue > 0 ? ((revenue - costs) / revenue * 100) : 0;
+      });
+      
       return {
-        monthlyTrend: {
+        cashFlow: {
           labels: months,
           income: Object.values(monthlyData).map(d => d.income),
           expenses: Object.values(monthlyData).map(d => d.expenses),
-          title: 'Monthly Financial Trend'
         },
-        projectRevenue: {
-          labels: [...new Set([...income.map(i => i.project || 'Unknown'), ...expenses.map(e => e.project || 'Unknown')])],
-          data: [...new Set([...income.map(i => i.project || 'Unknown'), ...expenses.map(e => e.project || 'Unknown')])].map(project => 
-            income.filter(i => (i.project || 'Unknown') === project).reduce((sum, i) => sum + (i.totalIncome || i.amount || 0), 0)
-          ),
-          title: 'Project Revenue Overview'
+        profitMargin: {
+          labels: Object.keys(projectRevenue),
+          data: projectProfitMargins
         },
         cropDistribution: {
           labels: revenueByCrop.map(item => item.crop),
           data: revenueByCrop.map(item => item.totalRevenue || 0),
-          title: 'Revenue by Crop'
+        },
+        expenseBreakdown: {
+          labels: [...new Set(expenses.map(e => e.category || 'Other'))],
+          data: [...new Set(expenses.map(e => e.category || 'Other'))].map(category => 
+            expenses.filter(e => (e.category || 'Other') === category).reduce((sum, e) => sum + (e.totalCost || e.amount || 0), 0)
+          ),
+        },
+        monthlyTrend: {
+          labels: months,
+          income: Object.values(monthlyData).map(d => d.income),
+          expenses: Object.values(monthlyData).map(d => d.expenses)
+        },
+        projectRevenue: {
+          labels: Object.keys(projectRevenue),
+          data: Object.values(projectRevenue)
         }
       };
     }
@@ -244,6 +278,72 @@ const EnhancedCharts = ({ filters }) => {
         }
       }
     }
+  };
+
+  // Define chart data objects based on chartData state
+  const cashFlowData = {
+    labels: chartData.cashFlow?.labels || [],
+    datasets: [
+      {
+        label: 'Income',
+        data: chartData.cashFlow?.income || [],
+        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+      },
+      {
+        label: 'Expenses',
+        data: chartData.cashFlow?.expenses || [],
+        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+      },
+    ],
+  };
+
+  const profitMarginData = {
+    labels: chartData.profitMargin?.labels || [],
+    datasets: [
+      {
+        label: 'Profit Margin %',
+        data: chartData.profitMargin?.data || [],
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.2)',
+        tension: 0.1,
+      },
+    ],
+  };
+
+  const cropDistributionData = {
+    labels: chartData.cropDistribution?.labels || [],
+    datasets: [
+      {
+        data: chartData.cropDistribution?.data || [],
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(255, 205, 86, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)',
+          'rgba(255, 159, 64, 0.8)',
+        ],
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  const expenseBreakdownData = {
+    labels: chartData.expenseBreakdown?.labels || [],
+    datasets: [
+      {
+        data: chartData.expenseBreakdown?.data || [],
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(255, 205, 86, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)',
+          'rgba(255, 159, 64, 0.8)',
+        ],
+        borderWidth: 2,
+      },
+    ],
   };
 
   return (

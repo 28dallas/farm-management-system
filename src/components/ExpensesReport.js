@@ -7,7 +7,7 @@ const defaultCategories = ['Utilities', 'Supplies', 'Labor', 'Transport'];
 const defaultUoMs = ['kg', 'litre', 'piece', 'hour'];
 const projects = ['All Projects', 'Project A', 'Project B', 'Project C'];
 
-const ExpensesReport = ({ filters }) => {
+const ExpensesReport = ({ filters = {} }) => {
   const [expenses, setExpenses] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('Select Filter Type');
@@ -20,6 +20,14 @@ const ExpensesReport = ({ filters }) => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedUom, setSelectedUom] = useState('');
   const [localExpenses, setLocalExpenses] = useState([]);
+  const [projectSummary, setProjectSummary] = useState({
+    totalIncome: 0,
+    totalExpenses: 0,
+    totalProfit: 0,
+    totalCrops: 0,
+    totalAcreage: 0,
+    totalYield: 0
+  });
 
   const handleAddExpense = (newExpense) => {
     setLocalExpenses(prev => [...prev, newExpense]);
