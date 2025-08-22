@@ -35,7 +35,28 @@ const Login = ({ onSwitchToSignup }) => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError(err.message || 'Login failed');
+      
+      // Provide more user-friendly error messages
+      let errorMessage = err.message || 'Login failed';
+      
+      if (err.message.includes('Server was sleeping')) {
+        errorMessage = 'Server is waking up. Please try again in a few moments.';
+      } else if (err.message.includes('starting up')) {
+        errorMessage = 'Server is starting up. This may take up to 30 seconds. Please wait and try again.';
+      } else if (err.message.includes('Unable to connect')) {
+        errorMessage = 'Unable to connect to server. Please check if the backend server is running.';
+      } else if (err.message.includes('Invalid username or password')) {
+        errorMessage = 'Invalid username or password. Please try again.';
+      } else if (err.message.includes('JSON')) {
+        errorMessage = 'There was an issue with the server communication. Please try again.';
+      }
+      
+      setError(errorMessage);
+      
+      // Auto-clear error after 5 seconds
+      setTimeout(() => {
+        setError('');
+      }, 5000);
     } finally {
       setLoading(false);
     }

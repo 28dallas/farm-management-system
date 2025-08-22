@@ -1,12 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiService from '../services/api';
 
 const Signup = ({ onSwitchToLogin }) => {
-  const { login, isAuthenticated } = useAuth();
+  const { login } = useAuth();
   // Redirect to dashboard if already authenticated
-  // No reload needed; App rerenders on isAuthenticated
+  // No reload needed; App rerenders on authentication change
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -94,33 +94,32 @@ const Signup = ({ onSwitchToLogin }) => {
             }`}
             required
           />
-          {passwordTouched && (
-            <div className="mt-2 text-sm text-gray-600">
-              <p className="font-medium mb-1">Password must contain:</p>
-              <ul className="space-y-1">
-                <li className={`flex items-center ${passwordChecks.minLength ? 'text-green-600' : 'text-red-600'}`}>
-                  <span className="mr-2">{passwordChecks.minLength ? '✓' : '•'}</span>
-                  At least 8 characters
-                </li>
-                <li className={`flex items-center ${passwordChecks.hasUppercase ? 'text-green-600' : 'text-red-600'}`}>
-                  <span className="mr-2">{passwordChecks.hasUppercase ? '✓' : '•'}</span>
-                  One uppercase letter (A-Z)
-                </li>
-                <li className={`flex items-center ${passwordChecks.hasLowercase ? 'text-green-600' : 'text-red-600'}`}>
-                  <span className="mr-2">{passwordChecks.hasLowercase ? '✓' : '•'}</span>
-                  One lowercase letter (a-z)
-                </li>
-                <li className={`flex items-center ${passwordChecks.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
-                  <span className="mr-2">{passwordChecks.hasNumber ? '✓' : '•'}</span>
-                  One number (0-9)
-                </li>
-                <li className={`flex items-center ${passwordChecks.hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
-                  <span className="mr-2">{passwordChecks.hasSpecialChar ? '✓' : '•'}</span>
-                  One special character (@$!%*?&)
-                </li>
-              </ul>
-            </div>
-          )}
+          {/* Always show password requirements */}
+          <div className="mt-2 text-sm text-gray-600">
+            <p className="font-medium mb-1">Password must contain:</p>
+            <ul className="space-y-1">
+              <li className={`flex items-center ${passwordChecks.minLength ? 'text-green-600' : 'text-red-600'}`}>
+                <span className="mr-2">{passwordChecks.minLength ? '✓' : '•'}</span>
+                At least 8 characters
+              </li>
+              <li className={`flex items-center ${passwordChecks.hasUppercase ? 'text-green-600' : 'text-red-600'}`}>
+                <span className="mr-2">{passwordChecks.hasUppercase ? '✓' : '•'}</span>
+                One uppercase letter (A-Z)
+              </li>
+              <li className={`flex items-center ${passwordChecks.hasLowercase ? 'text-green-600' : 'text-red-600'}`}>
+                <span className="mr-2">{passwordChecks.hasLowercase ? '✓' : '•'}</span>
+                One lowercase letter (a-z)
+              </li>
+              <li className={`flex items-center ${passwordChecks.hasNumber ? 'text-green-600' : 'text-red-600'}`}>
+                <span className="mr-2">{passwordChecks.hasNumber ? '✓' : '•'}</span>
+                One number (0-9)
+              </li>
+              <li className={`flex items-center ${passwordChecks.hasSpecialChar ? 'text-green-600' : 'text-red-600'}`}>
+                <span className="mr-2">{passwordChecks.hasSpecialChar ? '✓' : '•'}</span>
+                One special character (@$!%*?&)
+              </li>
+            </ul>
+          </div>
         </div>
         <div>
           <label className="block mb-1 font-medium text-gray-700">Email</label>

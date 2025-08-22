@@ -45,7 +45,7 @@ app.use(cors({
   credentials: true
 }));
 
-// Add better JSON parsing error handling
+// Enhanced JSON parsing error handling
 app.use((req, res, next) => {
   if (req.method === 'POST' && req.headers['content-type']?.includes('application/json')) {
     let body = '';
@@ -54,22 +54,59 @@ app.use((req, res, next) => {
     });
     req.on('end', () => {
       try {
-        req.body = JSON.parse(body);
+        // Clean the body by removing any non-JSON content before parsing
+        const cleanedBody = body.trim();
+        
+        // Check if body is empty
+        if (!cleanedBody) {
+          logger.warn('Empty JSON body received', { url: req.url });
+          return res.status(400).json({ 
+            error: 'Empty request body', 
+            message: 'Request body cannot be empty' 
+          });
+        }
+        
+        // Try to parse JSON
+        req.body = JSON.parse(cleanedBody);
         next();
       } catch (error) {
         logger.warn('Invalid JSON received', { 
           url: req.url, 
           body: body.substring(0, 200),
-          error: error.message 
+          error: error.message,
+          ip: req.ip
         });
+        
+        // Provide more specific error messages
+        let errorMessage = 'Invalid JSON format';
+        if (error.message.includes('Unexpected token')) {
+          errorMessage = 'Malformed JSON data. Please check your request format.';
+        } else if (error.message.includes('Unexpected end of JSON input')) {
+          errorMessage = 'Incomplete JSON data. Please check your request.';
+        }
+        
         return res.status(400).json({ 
-          error: 'Invalid JSON format', 
-          message: 'Please check your request data format' 
+          error: errorMessage, 
+          message: 'Please ensure your request contains valid JSON data' 
         });
       }
     });
   } else {
-    bodyParser.json({ limit: '10mb' })(req, res, next);
+    bodyParser.json({ 
+      limit: '10mb',
+      verify: (req, res, buf) => {
+        try {
+          JSON.parse(buf.toString());
+        } catch (error) {
+          logger.warn('BodyParser JSON validation failed', {
+            url: req.url,
+            error: error.message,
+            ip: req.ip
+          });
+          throw new Error('Invalid JSON format');
+        }
+      }
+    })(req, res, next);
   }
 });
 

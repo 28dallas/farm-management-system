@@ -19,19 +19,46 @@ class ApiService {
     console.log('Waking up backend server...');
     
     try {
-      await Promise.race([
-        fetch(`${this.baseURL}/api/health`, { 
-          method: 'GET',
-          mode: 'cors',
-          cache: 'no-cache'
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Wake-up timeout')), 45000)
-        )
-      ]);
-      console.log('Backend is awake');
+      // Try multiple health check attempts with increasing delays
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          const response = await Promise.race([
+            fetch(`${this.baseURL}/api/health`, { 
+              method: 'GET',
+              mode: 'cors',
+              cache: 'no-cache',
+              headers: {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              }
+            }),
+            new Promise((_, reject) => 
+              setTimeout(() => reject(new Error(`Wake-up timeout (attempt ${attempt})`)), 10000 * attempt)
+            )
+          ]);
+          
+          if (response.ok) {
+            console.log('Backend is awake and responsive');
+            this.isWakingUp = false;
+            return true;
+          }
+        } catch (error) {
+          console.log(`Wake-up attempt ${attempt} failed:`, error.message);
+          
+          // Wait before next attempt (exponential backoff)
+          if (attempt < 5) {
+            await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+          }
+        }
+      }
+      
+      console.log('All wake-up attempts failed');
+      throw new Error('Server is taking longer than expected to start. Please wait a moment and try again.');
+      
     } catch (error) {
-      console.log('Wake-up attempt completed:', error.message);
+      console.log('Wake-up process failed:', error.message);
+      throw error;
     } finally {
       this.isWakingUp = false;
     }
@@ -65,9 +92,9 @@ class ApiService {
     const url = `${this.baseURL}${endpoint}`;
     console.log('API Request:', url);
 
-    // Extended timeout for Render cold starts
+    // Extended timeout for cold starts
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Server is starting up, please wait and try again')), 60000);
+      setTimeout(() => reject(new Error('Server is starting up, please wait and try again')), 30000);
     });
 
     try {
@@ -117,20 +144,31 @@ class ApiService {
     } catch (error) {
       console.error('Network/API Error:', error);
       
-      // If it's a fetch failure, try to wake up the backend
+      // If it's a fetch failure, try to wake up the backend for critical endpoints
       if ((error.name === 'TypeError' || error.message.includes('Failed to fetch')) && 
-          !this.isWakingUp && (endpoint.includes('/login') || endpoint.includes('/signup'))) {
+          !this.isWakingUp && (endpoint.includes('/login') || endpoint.includes('/signup') || endpoint.includes('/health'))) {
         console.log('Backend might be sleeping, attempting to wake up...');
-        await this.wakeUpBackend();
-        throw new Error('Server was sleeping. Please try again in a moment.');
+        try {
+          await this.wakeUpBackend();
+          // After waking up, retry the original request once
+          console.log('Retrying original request after wake-up...');
+          return this.request(endpoint, options);
+        } catch (wakeUpError) {
+          throw new Error('Server was sleeping and could not be woken up. Please try again in a moment.');
+        }
       }
       
       if (error.message.includes('timeout') || error.message.includes('starting up')) {
-        throw new Error('Server is starting up (this can take up to 60 seconds on first use). Please wait and try again.');
+        throw new Error('Server is starting up. This can take up to 30 seconds. Please wait and try again.');
       }
       
       if (error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.message.includes('Network request failed')) {
-        throw new Error('Unable to connect to server. Please check your internet connection and try again.');
+        // Check if we're in development mode and provide helpful guidance
+        if (this.baseURL.includes('localhost') || this.baseURL.includes('127.0.0.1')) {
+          throw new Error(`Unable to connect to server at ${this.baseURL}. Make sure the backend server is running on port ${this.baseURL.split(':').pop()}.`);
+        } else {
+          throw new Error('Unable to connect to server. Please check your internet connection and try again.');
+        }
       }
       
       throw error;
